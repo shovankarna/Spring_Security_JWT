@@ -5,6 +5,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.shovan.security.dto.AuthenticationRequest;
 import com.shovan.security.dto.AuthenticationResponse;
+import com.shovan.security.dto.EnableDisableRequest;
+import com.shovan.security.dto.PasswordResetRequest;
 import com.shovan.security.dto.RegisterRequest;
 import com.shovan.security.service.AuthenticationService;
 
@@ -31,6 +33,18 @@ public class AuthenticationController {
     public ResponseEntity<AuthenticationResponse> register(@RequestBody AuthenticationRequest request) {
        
         return ResponseEntity.ok(authenticationService.authenticate(request));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<Void> resetPassword(@RequestBody PasswordResetRequest request) {
+        authenticationService.resetPassword(request);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/enable-disable")
+    public ResponseEntity<Void> enableDisableAccount(@RequestBody EnableDisableRequest request) {
+        authenticationService.enableDisableAccount(request);
+        return ResponseEntity.ok().build();
     }
 
 }

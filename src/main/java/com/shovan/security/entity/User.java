@@ -38,6 +38,8 @@ public class User implements UserDetails {
 
     private String password;
 
+    private boolean enabled = true;
+
     @Enumerated
     private Role role;
 
@@ -58,7 +60,7 @@ public class User implements UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        return true;
+        return enabled;
     }
 
     @Override
@@ -68,7 +70,7 @@ public class User implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return enabled;
     }
 
     @Override
