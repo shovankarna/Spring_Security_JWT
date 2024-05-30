@@ -40,11 +40,4 @@ public class AuthenticationController {
         authenticationService.resetPassword(request);
         return ResponseEntity.ok().build();
     }
-
-    @PostMapping("/enable-disable")
-    public ResponseEntity<Void> enableDisableAccount(@RequestBody EnableDisableRequest request) {
-        authenticationService.enableDisableAccount(request);
-        return ResponseEntity.ok().build();
-    }
-
 }

@@ -14,6 +14,7 @@ import com.shovan.security.dto.PasswordResetRequest;
 import com.shovan.security.dto.RegisterRequest;
 import com.shovan.security.entity.Role;
 import com.shovan.security.entity.User;
+import com.shovan.security.repository.RoleRepository;
 import com.shovan.security.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -24,6 +25,8 @@ public class AuthenticationService {
 
         private final UserRepository userRepository;
 
+        private final RoleRepository roleRepository;
+
         private final PasswordEncoder passwordEncoder;
 
         private final JwtService jwtService;
@@ -32,21 +35,22 @@ public class AuthenticationService {
 
         public AuthenticationResponse register(RegisterRequest request) {
 
-                var user = User.builder()
-                                .firstName(request.getFirstname())
-                                .lastName(request.getLastname())
-                                .email(request.getEmail())
-                                .password(passwordEncoder.encode(request.getPassword()))
-                                .role(Role.USER)
-                                .build();
+                if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+                        throw new IllegalArgumentException("Email already in use");
+                }
+                User user = new User();
+                user.setFirstName(request.getFirstName());
+                user.setLastName(request.getLastName());
+                user.setEmail(request.getEmail());
+                user.setPassword(passwordEncoder.encode(request.getPassword()));
+
+                Role userRole = roleRepository.findByName("ROLE_USER")
+                                .orElseThrow(() -> new IllegalArgumentException("User role not found"));
+                user.getRoles().add(userRole);
 
                 userRepository.save(user);
-
-                var jwtToken = jwtService.generateToken(user);
-
-                return AuthenticationResponse.builder()
-                                .token(jwtToken)
-                                .build();
+                String token = jwtService.generateToken(user);
+                return AuthenticationResponse.builder().token(token).build();
         }
 
         public AuthenticationResponse authenticate(AuthenticationRequest request) {
@@ -79,6 +83,23 @@ public class AuthenticationService {
                                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
                 user.setEnabled(request.isEnabled());
                 userRepository.save(user);
+        }
+
+        public void assignRoleToUser(String email, String roleName) {
+                User user = userRepository.findByEmail(email)
+                                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+                Role role = roleRepository.findByName(roleName)
+                                .orElseThrow(() -> new IllegalArgumentException("Role not found"));
+
+                user.getRoles().add(role);
+                userRepository.save(user);
+        }
+
+        public void deleteUser(String email) {
+                User user = userRepository.findByEmail(email)
+                                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+                userRepository.delete(user);
         }
 
 }
