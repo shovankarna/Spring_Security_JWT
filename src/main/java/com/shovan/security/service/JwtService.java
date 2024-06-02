@@ -3,11 +3,16 @@ package com.shovan.security.service;
 import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+
+import com.shovan.security.entity.User;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -20,26 +25,43 @@ public class JwtService {
 
     private static final String SECRET_KEY = "7c2b555d3e4d40595922693f4f6d587639305b6d4a745f7c3f20316b7a";
 
-    public <T> T extarctClaim(String token, Function<Claims, T> claimsResolver) {
+    public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = extractAllClaims(token);
-
         return claimsResolver.apply(claims);
     }
 
     public String extractUsername(String token) {
-        return extarctClaim(token, Claims::getSubject);
+        return extractClaim(token, Claims::getSubject);
     }
+
+    public List<String> extractRoles(String token) {
+        Claims claims = extractAllClaims(token);
+        return claims.get("roles", List.class);
+    }
+
+    // public String extractFirstName(String token) {
+    //     Claims claims = extractAllClaims(token);
+    //     return claims.get("firstName", String.class);
+    // }
+
+    // public String extractLastName(String token) {
+    //     Claims claims = extractAllClaims(token);
+    //     return claims.get("lastName", String.class);
+    // }
 
     public String generateToken(UserDetails userDetails) {
-        return generateToken(new HashMap<>(), userDetails);
+        Map<String, Object> claims = new HashMap<>();
+        User user = (User) userDetails;
+        // claims.put("firstName", user.getFirstName());
+        // claims.put("lastName", user.getLastName());
+        claims.put("roles", user.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toList()));
+        return generateToken(claims, userDetails);
     }
 
-    public String generateToken(
-            Map<String, Object> extraClaims,
-            UserDetails userDetails) {
-
-        return Jwts
-                .builder()
+    public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails) {
+        return Jwts.builder()
                 .setClaims(extraClaims)
                 .setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
@@ -58,26 +80,19 @@ public class JwtService {
     }
 
     private Date extractExpiration(String token) {
-        return extarctClaim(token, Claims::getExpiration);
+        return extractClaim(token, Claims::getExpiration);
     }
 
     private Claims extractAllClaims(String token) {
-        try {
-            return Jwts.parserBuilder()
-                    .setSigningKey(getSignKey())
-                    .build()
-                    .parseClaimsJws(token)
-                    .getBody();
-        } catch (Exception e) {
-            System.err.println("Failed to parse JWT: " + e.getMessage());
-            e.printStackTrace();
-            throw e;
-        }
+        return Jwts.parserBuilder()
+                .setSigningKey(getSignKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
     }
 
     private Key getSignKey() {
         byte[] keyBytes = Decoders.BASE64.decode(SECRET_KEY);
         return Keys.hmacShaKeyFor(keyBytes);
     }
-
 }
