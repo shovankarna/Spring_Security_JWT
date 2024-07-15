@@ -23,6 +23,7 @@ public class TokenStoreService {
     }
 
     public void deleteToken(String username) {
+        System.out.println("username: " + username);
         redisTemplate.delete(TOKEN_PREFIX + username);
     }
 

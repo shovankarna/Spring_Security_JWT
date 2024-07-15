@@ -72,14 +72,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 } else {
-                    System.out.println("Token DOES nOT MATCH");
+                    System.out.println("Token DOES not MATCH");
                     response.setStatus(HttpStatus.UNAUTHORIZED.value());
                     response.getWriter().write("Token does not match");
                     return;
                 }
             } else {
                 response.setStatus(HttpStatus.UNAUTHORIZED.value());
-                response.getWriter().write("Invalid token");
+                response.getWriter().write("Unauthorized or Invalid token");
                 return;
             }
         }

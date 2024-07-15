@@ -37,6 +37,13 @@ public class JwtService {
         }
     }
 
+    public String extractJwtToken(String bearerToken) {
+        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
+            return bearerToken.substring(7);
+        }
+        return null;
+    }
+
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
     }
@@ -49,16 +56,6 @@ public class JwtService {
             throw new ApiException(HttpStatus.UNAUTHORIZED, "Invalid JWT token");
         }
     }
-
-    // public String extractFirstName(String token) {
-    // Claims claims = extractAllClaims(token);
-    // return claims.get("firstName", String.class);
-    // }
-
-    // public String extractLastName(String token) {
-    // Claims claims = extractAllClaims(token);
-    // return claims.get("lastName", String.class);
-    // }
 
     public String generateToken(UserDetails userDetails) {
         try {
