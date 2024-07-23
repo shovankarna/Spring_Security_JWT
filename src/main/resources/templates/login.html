@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Login</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+
+<body>
+    <div class="container">
+        <h1>Login</h1>
+        <form id="loginForm" action="/api/v1/auth/login" method="post">
+            <input type="hidden" name="redirectUrl" value="${redirectUrl}" />
+
+            <div class="input-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" placeholder="Enter your email" required>
+                <div class="error-message" id="emailError"></div>
+            </div>
+
+            <div class="input-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" placeholder="Enter your password" required>
+                <div class="error-message" id="passwordError"></div>
+            </div>
+
+            <button type="submit">Login</button>
+
+            <div class="form-footer">
+                <a href="#">Forgot Password?</a>
+            </div>
+            <div class="social-login">
+                <button type="button" class="social-button google">Login with Google</button>
+                <button type="button" class="social-button github">Login with GitHub</button>
+            </div>
+
+            <div class="error-message" id="generalError"></div>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async function (event) {
+            event.preventDefault();
+            const form = event.target;
+            const formData = new FormData(form);
+            const generalError = document.getElementById('generalError');
+
+            try {
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.json();
+                if (response.ok) {
+                    // Successful login
+                    window.location.href = result.data.redirectUrl;
+                } else {
+                    // Display error messages and add shake animation
+                    const container = document.querySelector('.container');
+                    container.classList.add('shake');
+                    setTimeout(() => {
+                        container.classList.remove('shake');
+                    }, 600);
+
+                    generalError.textContent = result.message || 'An error occurred';
+                    generalError.style.display = 'block';
+
+                    if (result.data && result.data.errors) {
+                        const errors = result.data.errors;
+                        if (errors.email) {
+                            document.getElementById('emailError').textContent = errors.email;
+                        }
+                        if (errors.password) {
+                            document.getElementById('passwordError').textContent = errors.password;
+                        }
+                    }
+                }
+            } catch (error) {
+                generalError.textContent = 'An unexpected error occurred';
+                generalError.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+
+</html>
