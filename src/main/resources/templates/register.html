@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Register</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+
+<body>
+    <div class="container">
+        <h1>Register</h1>
+        <form id="registerForm" action="/api/v1/auth/register" method="post">
+            <div class="input-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" placeholder="Enter your email" required>
+                <div class="error-message" id="emailError"></div>
+            </div>
+
+            <div class="input-group">
+                <button type="button" id="sendOtpButton">Send OTP</button>
+            </div>
+
+            <div class="input-group" id="otpGroup" style="display:none;">
+                <label for="otp">OTP:</label>
+                <input type="text" id="otp" name="otp" placeholder="Enter OTP" required>
+                <div class="error-message" id="otpError"></div>
+            </div>
+
+            <div class="input-group" id="nameGroup" style="display:none;">
+                <label for="firstName">First Name:</label>
+                <input type="text" id="firstName" name="firstName" placeholder="Enter your first name" required>
+                <div class="error-message" id="firstNameError"></div>
+            </div>
+
+            <div class="input-group" id="lastNameGroup" style="display:none;">
+                <label for="lastName">Last Name:</label>
+                <input type="text" id="lastName" name="lastName" placeholder="Enter your last name" required>
+                <div class="error-message" id="lastNameError"></div>
+            </div>
+
+            <div class="input-group" id="passwordGroup" style="display:none;">
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" placeholder="Enter your password" required>
+                <div class="error-message" id="passwordError"></div>
+            </div>
+
+            <div class="input-group" id="confirmPasswordGroup" style="display:none;">
+                <label for="confirmPassword">Confirm Password:</label>
+                <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Confirm your password" required>
+                <div class="error-message" id="confirmPasswordError"></div>
+            </div>
+
+            <button type="submit" id="registerButton" style="display:none;">Register</button>
+
+            <div class="error-message" id="generalError"></div>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('sendOtpButton').addEventListener('click', async function () {
+            const email = document.getElementById('email').value;
+            const emailError = document.getElementById('emailError');
+
+            try {
+                const response = await fetch('/api/v1/auth/send-otp', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email: email })
+                });
+
+                if (response.ok) {
+                    document.getElementById('otpGroup').style.display = 'block';
+                    document.getElementById('nameGroup').style.display = 'block';
+                    document.getElementById('lastNameGroup').style.display = 'block';
+                    document.getElementById('passwordGroup').style.display = 'block';
+                    document.getElementById('confirmPasswordGroup').style.display = 'block';
+                    document.getElementById('registerButton').style.display = 'block';
+                } else {
+                    const result = await response.json();
+                    emailError.textContent = result.message || 'Failed to send OTP';
+                }
+            } catch (error) {
+                emailError.textContent = 'An unexpected error occurred';
+            }
+        });
+
+        document.getElementById('registerForm').addEventListener('submit', async function (event) {
+            event.preventDefault();
+            const form = event.target;
+            const formData = new FormData(form);
+            const generalError = document.getElementById('generalError');
+
+            try {
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    // Successful registration
+                    window.location.href = '/login';
+                } else {
+                    const result = await response.json();
+                    generalError.textContent = result.message || 'An error occurred';
+
+                    if (result.errors) {
+                        document.getElementById('otpError').textContent = result.errors.otp || '';
+                        document.getElementById('firstNameError').textContent = result.errors.firstName || '';
+                        document.getElementById('lastNameError').textContent = result.errors.lastName || '';
+                        document.getElementById('passwordError').textContent = result.errors.password || '';
+                        document.getElementById('confirmPasswordError').textContent = result.errors.confirmPassword || '';
+                    }
+                }
+            } catch (error) {
+                generalError.textContent = 'An unexpected error occurred';
+            }
+        });
+    </script>
+</body>
+
+</html>

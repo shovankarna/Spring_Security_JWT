@@ -4,7 +4,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -37,9 +36,19 @@ public class AuthenticationService {
 
         private final TokenStoreService tokenStoreService;
 
+        private final OtpService otpService;
+
         private static final long TOKEN_EXPIRATION_TIME = 1000 * 60 * 24;
 
         public AuthenticationResponse register(RegisterRequest request) {
+
+                if (!request.getPassword().equals(request.getConfirmPassword())) {
+                        throw new ApiException(HttpStatus.BAD_REQUEST, "Passwords do not match");
+                }
+
+                if (!otpService.verifyOtp(request.getEmail(), request.getOtp())) {
+                        throw new ApiException(HttpStatus.UNAUTHORIZED, "Invalid OTP");
+                }
 
                 if (userRepository.findByEmail(request.getEmail()).isPresent()) {
                         throw new ApiException(HttpStatus.CONFLICT, "Email already in use");

@@ -3,6 +3,8 @@ server:
 
 app:
   redirect-url: "http://localhost:3000/"
+  otp:
+    expiration-time: "5"
 
 spring:
   thymeleaf:

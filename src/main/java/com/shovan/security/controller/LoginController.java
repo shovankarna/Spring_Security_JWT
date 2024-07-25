@@ -36,7 +36,7 @@ public class LoginController {
 
     @GetMapping("/login-page")
     public String showLoginPage(Model model) {
-        model.addAttribute("redirectUrl", redirectUrl);
+        // model.addAttribute("redirectUrl", redirectUrl);
         return "login";
     }
 
