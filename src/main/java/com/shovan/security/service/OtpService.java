@@ -38,7 +38,11 @@ public class OtpService {
     public boolean verifyOtp(String email, String otp) {
 
         try {
+            System.out.println("email: " + email);
+            System.out.println("otp: " + otp);
+
             String storedOtp = (String) redisTemplate.opsForValue().get(OTP_PREFIX + email);
+            System.out.println("storedOtp: " + storedOtp);
             boolean isValid = otp != null && otp.equals(storedOtp);
 
             if (isValid) {

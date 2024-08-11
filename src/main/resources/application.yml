@@ -7,6 +7,12 @@ app:
     expiration-time: "5"
 
 spring:
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 2MB
+      max-request-size: 2MB
+        
   thymeleaf:
       prefix: classpath:/templates/
       suffix: .html

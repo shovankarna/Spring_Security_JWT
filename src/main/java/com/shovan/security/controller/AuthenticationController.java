@@ -25,6 +25,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -45,9 +46,12 @@ public class AuthenticationController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<ApiResponse<AuthenticationResponse>> register(@RequestBody RegisterRequest request,
+    public ResponseEntity<ApiResponse<AuthenticationResponse>> register(
+            @ModelAttribute RegisterRequest request,
+            // @RequestBody RegisterRequest request,
             HttpServletResponse response) {
         try {
+            System.out.println("request.getEmail(): " + request.getEmail());
             AuthenticationResponse authResponse = authenticationService.register(request);
 
             // Set the JWT token as a secure, HTTP-only cookie

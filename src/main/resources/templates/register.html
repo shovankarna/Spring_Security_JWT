@@ -6,6 +6,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Register</title>
     <link rel="stylesheet" href="/css/styles.css">
+    <style>
+        .row {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .row .input-group {
+            width: 48%;
+        }
+
+        .disabled-input {
+            background-color: #f0f0f0;
+            color: #666;
+        }
+
+        #backButton {
+            margin-right: 10px;
+        }
+    </style>
 </head>
 
 <body>
@@ -22,47 +41,96 @@
                 <button type="button" id="sendOtpButton">Send OTP</button>
             </div>
 
-            <div class="input-group" id="otpGroup" style="display:none;">
-                <label for="otp">OTP:</label>
-                <input type="text" id="otp" name="otp" placeholder="Enter OTP" required>
-                <div class="error-message" id="otpError"></div>
+            <div id="otpSection" style="display:none;">
+                <div class="row">
+                    <div class="input-group">
+                        <!-- <label for="email">Email:</label> -->
+                        <input type="email" id="emailDisplay" disabled class="disabled-input">
+                    </div>
+                    <div class="input-group">
+                        <label for="otp">OTP:</label>
+                        <input type="text" id="otp" name="otp" placeholder="Enter OTP" required>
+                        <div class="error-message" id="otpError"></div>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <button type="button" id="resendOtpButton">Resend OTP</button>
+                </div>
+
+                <div class="row">
+                    <div class="input-group">
+                        <label for="firstName">First Name:</label>
+                        <input type="text" id="firstName" name="firstName" placeholder="Enter your first name" required>
+                        <div class="error-message" id="firstNameError"></div>
+                    </div>
+                    <div class="input-group">
+                        <label for="lastName">Last Name:</label>
+                        <input type="text" id="lastName" name="lastName" placeholder="Enter your last name" required>
+                        <div class="error-message" id="lastNameError"></div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="input-group">
+                        <label for="password">Password:</label>
+                        <input type="password" id="password" name="password" placeholder="Enter your password" required>
+                        <div class="error-message" id="passwordError"></div>
+                    </div>
+                    <div class="input-group">
+                        <label for="confirmPassword">Confirm Password:</label>
+                        <input type="password" id="confirmPassword" name="confirmPassword"
+                            placeholder="Confirm your password" required>
+                        <div class="error-message" id="confirmPasswordError"></div>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <button type="button" id="backButton">Back</button>
+                    <button type="submit" id="registerButton">Register</button>
+                </div>
             </div>
 
-            <div class="input-group" id="nameGroup" style="display:none;">
-                <label for="firstName">First Name:</label>
-                <input type="text" id="firstName" name="firstName" placeholder="Enter your first name" required>
-                <div class="error-message" id="firstNameError"></div>
+            <div class="social-login">
+                <button type="button" class="social-button google"
+                    onclick="location.href='/oauth2/authorization/google'">
+                    Register with Google
+                </button>
+                <button type="button" class="social-button github"
+                    onclick="location.href='/oauth2/authorization/github'">
+                    Register with GitHub
+                </button>
             </div>
-
-            <div class="input-group" id="lastNameGroup" style="display:none;">
-                <label for="lastName">Last Name:</label>
-                <input type="text" id="lastName" name="lastName" placeholder="Enter your last name" required>
-                <div class="error-message" id="lastNameError"></div>
-            </div>
-
-            <div class="input-group" id="passwordGroup" style="display:none;">
-                <label for="password">Password:</label>
-                <input type="password" id="password" name="password" placeholder="Enter your password" required>
-                <div class="error-message" id="passwordError"></div>
-            </div>
-
-            <div class="input-group" id="confirmPasswordGroup" style="display:none;">
-                <label for="confirmPassword">Confirm Password:</label>
-                <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Confirm your password" required>
-                <div class="error-message" id="confirmPasswordError"></div>
-            </div>
-
-            <button type="submit" id="registerButton" style="display:none;">Register</button>
 
             <div class="error-message" id="generalError"></div>
         </form>
     </div>
 
     <script>
-        document.getElementById('sendOtpButton').addEventListener('click', async function () {
-            const email = document.getElementById('email').value;
+        const emailInput = document.getElementById('email');
+        const emailDisplay = document.getElementById('emailDisplay');
+        const sendOtpButton = document.getElementById('sendOtpButton');
+        const resendOtpButton = document.getElementById('resendOtpButton');
+        const backButton = document.getElementById('backButton');
+        const otpSection = document.getElementById('otpSection');
+        const registerForm = document.getElementById('registerForm');
+        const generalError = document.getElementById('generalError');
+
+        function validateEmail(email) {
+            const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+            return re.test(String(email).toLowerCase());
+        }
+
+        async function sendOtp() {
+            const email = emailInput.value;
             const emailError = document.getElementById('emailError');
 
+            if (!validateEmail(email)) {
+                emailError.textContent = 'Please enter a valid email address';
+                return;
+            }
+
+            emailError.textContent = '';
             try {
                 const response = await fetch('/api/v1/auth/send-otp', {
                     method: 'POST',
@@ -73,12 +141,10 @@
                 });
 
                 if (response.ok) {
-                    document.getElementById('otpGroup').style.display = 'block';
-                    document.getElementById('nameGroup').style.display = 'block';
-                    document.getElementById('lastNameGroup').style.display = 'block';
-                    document.getElementById('passwordGroup').style.display = 'block';
-                    document.getElementById('confirmPasswordGroup').style.display = 'block';
-                    document.getElementById('registerButton').style.display = 'block';
+                    emailDisplay.value = email;
+                    otpSection.style.display = 'block';
+                    emailInput.style.display = 'none';
+                    sendOtpButton.style.display = 'none';
                 } else {
                     const result = await response.json();
                     emailError.textContent = result.message || 'Failed to send OTP';
@@ -86,27 +152,37 @@
             } catch (error) {
                 emailError.textContent = 'An unexpected error occurred';
             }
+        }
+
+        sendOtpButton.addEventListener('click', sendOtp);
+        resendOtpButton.addEventListener('click', sendOtp);
+
+        backButton.addEventListener('click', function () {
+            otpSection.style.display = 'none';
+            emailInput.style.display = 'block';
+            sendOtpButton.style.display = 'block';
+            emailInput.value = '';
+            generalError.textContent = '';
         });
 
-        document.getElementById('registerForm').addEventListener('submit', async function (event) {
+        registerForm.addEventListener('submit', async function (event) {
             event.preventDefault();
-            const form = event.target;
-            const formData = new FormData(form);
-            const generalError = document.getElementById('generalError');
+            const formData = new FormData(registerForm);
 
+            generalError.textContent = '';
             try {
-                const response = await fetch(form.action, {
+                const response = await fetch(registerForm.action, {
                     method: 'POST',
                     body: formData
                 });
 
                 if (response.ok) {
-                    // Successful registration
-                    window.location.href = '/login';
+                    window.location.href = '/api/v1/auth/login-page';
                 } else {
                     const result = await response.json();
-                    generalError.textContent = result.message || 'An error occurred';
-
+                    if (result.message) {
+                        generalError.textContent = result.message;
+                    }
                     if (result.errors) {
                         document.getElementById('otpError').textContent = result.errors.otp || '';
                         document.getElementById('firstNameError').textContent = result.errors.firstName || '';

@@ -1,6 +1,7 @@
 package com.shovan.security.controller;
 
 import java.time.Duration;
+import java.util.Collection;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
@@ -41,8 +42,10 @@ public class LoginController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<AuthenticationResponse>> performLogin(@RequestParam String email,
-            @RequestParam String password, HttpServletResponse response) {
+    public ResponseEntity<ApiResponse<AuthenticationResponse>> performLogin(
+            @RequestParam String email,
+            @RequestParam String password,
+            HttpServletResponse response) {
         try {
             AuthenticationResponse authResponse = authenticationService
                     .authenticate(new AuthenticationRequest(email, password));
@@ -57,8 +60,17 @@ public class LoginController {
                     .build();
             response.addHeader(HttpHeaders.SET_COOKIE, jwtCookie.toString());
 
+            // Set the JWT token in the Authorization header
+            response.setHeader(HttpHeaders.AUTHORIZATION, "Bearer " + authResponse.getToken());
+
             // Remove the token from the response object
             authResponse.setToken(null);
+
+            // Print all headers for debugging
+            Collection<String> headerNames = response.getHeaderNames();
+            for (String headerName : headerNames) {
+                System.out.println(headerName + ": " + response.getHeader(headerName));
+            }
 
             ApiResponse<AuthenticationResponse> apiResponse = new ApiResponse<>(HttpStatus.OK, "Login successful",
                     authResponse);
